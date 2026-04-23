@@ -1,0 +1,30 @@
+# Layman App - Project Context & Rules
+
+## Design Principles
+- **Pixel Perfection**: Replicate mockup designs exactly.
+- **Color Palette**: 
+  - Primary: Warm Orange (#FF8C00)
+  - Layout: Warm Peach-to-Orange Gradients
+  - Cards/Surface: Cream/Beige (#FFF8F0)
+  - Text: High Contrast Charcoal (#333333)
+- **Typography**: Clean, bold headlines; exactly 2 lines in detail, exactly 6 lines in cards.
+- **Spacing**: Consistent 20px padding (SIZES.padding).
+- **Rounding**: SIZES.radius (12px) for cards, inputs, and thumbnails.
+
+## Technical Architecture
+- **Framework**: React Native Expo (SDK 54)
+- **Navigation**: React Navigation (Stack + Tabs)
+- **Auth/Database**: Supabase
+- **API**: NewsData.io (Articles), Google Gemini (AI Chat)
+- **Styling**: Vanilla StyleSheet with central theme tokens.
+
+## Coding Standards
+- **Component Pattern**: functional components with hooks.
+- **MVVM Pattern**: Separation of UI (Screens/Components) and Logic (Services/Hooks).
+- **Type Safety**: TypeScript for all new files.
+- **Async Handling**: Proper loading states and error handling for all API calls.
+
+## AI Workflow Rules
+- **Granular Commits**: Follow the 40-Step roadmap.
+- **Context Awareness**: Utilize project context files.
+- **CLI Usage**: Use `expo` and `npm` commands for project management.

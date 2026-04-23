@@ -2,154 +2,147 @@ import React, { useState } from 'react';
 import { 
   View, 
   Text, 
+  TextInput, 
+  TouchableOpacity, 
   StyleSheet, 
-  KeyboardAvoidingView, 
-  Platform, 
-  ScrollView, 
-  Alert,
-  TouchableOpacity
+  Alert, 
+  ActivityIndicator,
+  SafeAreaView
 } from 'react-native';
 import { supabase } from '../../services/supabase';
-import { COLORS, SIZES, SPACING } from '../../constants/theme';
-import Input from '../../components/common/Input';
-import Button from '../../components/common/Button';
+import { COLORS } from '../../constants/theme';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
+  Welcome: undefined;
 };
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
+  React.useEffect(() => {
+    console.log('--- LoginScreen Rendered Successfully ---');
+  }, []);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert('Error', 'Please enter both email and password');
       return;
     }
 
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log('--- Attempting Login ---', { email });
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
+    console.log('--- Supabase Response ---');
+    console.log('Data:', data);
+    console.log('Error:', error);
+
     if (error) {
       Alert.alert('Login Failed', error.message);
       setLoading(false);
+    } else {
+      console.log('Login successful - User Session Created');
+      // Loading is not set to false here as typically the app 
+      // will navigate away automatically due to auth state change
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
-        </View>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.form}>
+        <Text style={styles.title}>Welcome Back</Text>
+        
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
 
-        <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="example@mail.com"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            iconName="mail-outline"
-          />
-          <Input
-            label="Password"
-            placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            iconName="lock-closed-outline"
-          />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.button} 
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.buttonText}>Log In</Text>
+          )}
+        </TouchableOpacity>
 
-          <Button 
-            title="Log In" 
-            onPress={handleLogin} 
-            loading={loading}
-            style={styles.loginButton}
-          />
-
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.signupLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
+          <Text style={styles.linkText}>Don't have an account? Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: SIZES.padding,
+    backgroundColor: '#FFF',
     justifyContent: 'center',
-  },
-  header: {
-    marginBottom: SPACING.xl,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: SIZES.h1,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
   },
   form: {
-    width: '100%',
+    padding: 20,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: SPACING.lg,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    color: '#333',
+    textAlign: 'center',
   },
-  forgotPasswordText: {
-    color: COLORS.primary,
-    fontSize: 14,
-    fontWeight: '600',
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
   },
-  loginButton: {
+  button: {
+    height: 50,
+    backgroundColor: '#FF8C00', // Warm Orange
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 10,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: SPACING.xl,
-  },
-  footerText: {
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  signupLink: {
-    color: COLORS.primary,
-    fontSize: 14,
+  buttonText: {
+    color: '#FFF',
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  linkText: {
+    color: '#FF8C00',
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 14,
   },
 });
 

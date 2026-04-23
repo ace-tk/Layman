@@ -11,6 +11,8 @@ export const COLORS = {
   success: '#32CD32',
   white: '#FFFFFF',
   black: '#000000',
+  accentOrange: '#FF4500',
+  peachOrangeGradient: ['#FFDAB9', '#FF8C00'],
   warmOrangeGradient: ['#FF8C00', '#FFA500'],
 };
 
