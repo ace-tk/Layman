@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { supabase } from './src/services/supabase';
 import AuthNavigator from './src/navigation/AuthNavigator';
-import HomeScreen from './src/screens/HomeScreen';
+import MainNavigator from './src/navigation/MainNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,7 +34,7 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
           // Main App
-          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Main" component={MainNavigator} />
         ) : (
           // Auth Flow
           <Stack.Screen name="Auth" component={AuthNavigator} />
