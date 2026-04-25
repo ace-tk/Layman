@@ -236,7 +236,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
     lineHeight: 32,
-    // exactly 2 lines is enforced by numberOfLines prop in JSX
   },
   heroImage: {
     width: width,
@@ -262,8 +261,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 3,
-    // Ensure height allows exactly ~6 lines of text
-    height: 180,
     justifyContent: 'center'
   },
   cardText: {
@@ -272,6 +269,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
     textAlign: 'center',
+    ellipsizeMode: 'tail',
   },
   pagination: {
     flexDirection: 'row',
