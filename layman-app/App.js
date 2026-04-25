@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { supabase } from './src/services/supabase';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
+import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,7 +35,10 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
           // Main App
-          <Stack.Screen name="Main" component={MainNavigator} />
+          <>
+            <Stack.Screen name="Main" component={MainNavigator} />
+            <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+          </>
         ) : (
           // Auth Flow
           <Stack.Screen name="Auth" component={AuthNavigator} />

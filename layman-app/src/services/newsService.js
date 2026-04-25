@@ -1,14 +1,14 @@
 const API_KEY = process.env.EXPO_PUBLIC_NEWSDATA_API_KEY;
 const BASE_URL = 'https://newsdata.io/api/1/news';
 
-export const fetchNews = async (category = 'business,technology') => {
+export const fetchNews = async (category = 'business') => {
   if (!API_KEY || API_KEY === 'YOUR_NEWSDATA_API_KEY') {
     throw new Error('NewsData API key is missing. Please add it to your .env file.');
   }
 
   try {
-    // English language, specific categories
-    const url = `${BASE_URL}?apikey=${API_KEY}&language=en&category=${category}&image=1`;
+    // Simplified request to prevent 422 errors
+    const url = `${BASE_URL}?apikey=${API_KEY}&category=${category}`;
     const response = await fetch(url);
     
     if (!response.ok) {

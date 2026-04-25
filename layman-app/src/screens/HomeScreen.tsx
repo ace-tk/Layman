@@ -19,7 +19,7 @@ const { width } = Dimensions.get('window');
 // Fallback image for articles without one
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&q=80';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
@@ -52,7 +52,11 @@ export default function HomeScreen() {
   };
 
   const renderFeaturedItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.featuredCard} activeOpacity={0.9}>
+    <TouchableOpacity 
+      style={styles.featuredCard} 
+      activeOpacity={0.9}
+      onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+    >
       <Image 
         source={{ uri: item.image_url || FALLBACK_IMAGE }} 
         style={styles.featuredImage} 
@@ -70,7 +74,11 @@ export default function HomeScreen() {
   );
 
   const renderVerticalItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.verticalCard} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={styles.verticalCard} 
+      activeOpacity={0.7}
+      onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+    >
       <Image 
         source={{ uri: item.image_url || FALLBACK_IMAGE }} 
         style={styles.verticalImage} 
