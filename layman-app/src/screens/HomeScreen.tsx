@@ -8,7 +8,8 @@ import {
   ActivityIndicator, 
   TouchableOpacity, 
   ScrollView,
-  Dimensions
+  Dimensions,
+  SafeAreaView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,16 +17,33 @@ import { fetchNews } from '../services/newsService';
 
 const { width } = Dimensions.get('window');
 
+// Conversational Headline Helper
+const simplifyHeadline = (text: string) => {
+  if (!text) return "";
+  
+  // Basic truncation & conversational tone logic
+  let simple = text;
+  
+  // Example simplistic transformations
+  simple = simple.replace(/announces/i, "says");
+  simple = simple.replace(/launches/i, "just started");
+  simple = simple.replace(/merger/i, "joining together");
+  
+  // Truncate to ~50 characters
+  if (simple.length > 50) {
+    simple = simple.substring(0, 47) + "...";
+  }
+  
+  return simple;
+};
+
 const ImageWithFallback = ({ uri, style }: any) => {
   const [error, setError] = useState(false);
 
   if (!uri || error) {
     return (
-      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center', padding: 8 }]}>
-        <Ionicons name="image-outline" size={24} color="#E65100" style={{ marginBottom: 4 }} />
-        <Text style={{ color: '#E65100', fontSize: 12, fontWeight: 'bold', textAlign: 'center' }}>
-          No Image Available
-        </Text>
+      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
+        <Ionicons name="image-outline" size={32} color="#E65100" />
       </View>
     );
   }
@@ -34,10 +52,7 @@ const ImageWithFallback = ({ uri, style }: any) => {
     <Image 
       source={{ uri }} 
       style={style} 
-      onError={() => {
-        console.log('HomeScreen Image Load Error URI:', uri);
-        setError(true);
-      }}
+      onError={() => setError(true)}
     />
   );
 };
@@ -47,8 +62,6 @@ export default function HomeScreen({ navigation }: any) {
   const [error, setError] = useState<string | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
-  
-  // Carousel Page Indicator State
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -59,13 +72,10 @@ export default function HomeScreen({ navigation }: any) {
     try {
       setLoading(true);
       setError(null);
-      
       const news = await fetchNews();
-      
-      // We will use the first 3 for the carousel, the rest for the vertical list
       if (news && news.length > 0) {
-        setFeaturedArticles(news.slice(0, 3));
-        setArticles(news.slice(3));
+        setFeaturedArticles(news.slice(0, 4));
+        setArticles(news.slice(4));
       }
     } catch (err: any) {
       setError(err.message || 'Failed to load news');
@@ -80,19 +90,20 @@ export default function HomeScreen({ navigation }: any) {
       activeOpacity={0.9}
       onPress={() => navigation.navigate('ArticleDetail', { article: item })}
     >
-      <ImageWithFallback 
-        uri={item.image_url} 
-        style={styles.featuredImage} 
-      />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.8)']}
-        style={styles.gradientOverlay}
-      >
-        <View style={styles.featuredContent}>
-          <Text style={styles.featuredSource}>{item.source_id?.toUpperCase() || 'NEWS'}</Text>
-          <Text style={styles.featuredTitle} numberOfLines={2}>{item.title}</Text>
-        </View>
-      </LinearGradient>
+      <View style={styles.featuredWrapper}>
+        <ImageWithFallback 
+          uri={item.image_url} 
+          style={styles.featuredImage} 
+        />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          style={styles.gradientOverlay}
+        >
+          <Text style={styles.featuredTitle} numberOfLines={2}>
+            {simplifyHeadline(item.title)}
+          </Text>
+        </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 
@@ -107,8 +118,9 @@ export default function HomeScreen({ navigation }: any) {
         style={styles.verticalImage} 
       />
       <View style={styles.verticalContent}>
-        <Text style={styles.verticalSource}>{item.source_id?.toUpperCase() || 'NEWS'}</Text>
-        <Text style={styles.verticalTitle} numberOfLines={2}>{item.title}</Text>
+        <Text style={styles.verticalTitle} numberOfLines={2}>
+          {simplifyHeadline(item.title)}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -117,36 +129,23 @@ export default function HomeScreen({ navigation }: any) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#FF8A65" />
-        <Text style={styles.loadingText}>Fetching latest news...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.centerContainer}>
-        <Ionicons name="alert-circle-outline" size={48} color="#FF8A65" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadNews}>
-          <Text style={styles.retryText}>Try Again</Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.logoText}>Layman</Text>
-        <TouchableOpacity>
+        <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* CAROUSEL */}
-        <View style={styles.carouselContainer}>
+        <View style={styles.carouselSection}>
           <FlatList
             data={featuredArticles}
             keyExtractor={(item, index) => item.article_id || index.toString()}
@@ -160,6 +159,7 @@ export default function HomeScreen({ navigation }: any) {
               setActiveIndex(Math.round(index));
             }}
           />
+          {/* Pagination Indicators below carousel */}
           <View style={styles.pagination}>
             {featuredArticles.map((_, index) => (
               <View 
@@ -176,54 +176,68 @@ export default function HomeScreen({ navigation }: any) {
         {/* TODAY'S PICKS */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Today's Picks</Text>
+          <TouchableOpacity>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
         </View>
         
-        <FlatList
-          data={articles}
-          keyExtractor={(item, index) => item.article_id || index.toString()}
-          renderItem={renderVerticalItem}
-          scrollEnabled={false} // Nested inside ScrollView
-          contentContainerStyle={styles.listContent}
-        />
+        <View style={styles.picksContainer}>
+          {articles.map((item, index) => (
+            <View key={item.article_id || index.toString()}>
+              {renderVerticalItem({ item })}
+            </View>
+          ))}
+        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5', // Warm peach background
+    backgroundColor: '#FFF0E5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#FFF0E5',
-    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60, // Adjust for safe area
-    paddingBottom: 15,
-    backgroundColor: '#FFF0E5',
+    paddingVertical: 15,
   },
   logoText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#E65100', // Deep warm orange
-    letterSpacing: -0.5,
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#000',
+    letterSpacing: -1,
   },
-  carouselContainer: {
-    height: 250,
+  searchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  carouselSection: {
     marginBottom: 20,
   },
   featuredCard: {
     width: width,
-    height: 250,
+    paddingHorizontal: 20,
+    height: 300,
+  },
+  featuredWrapper: {
+    flex: 1,
+    borderRadius: 30,
+    overflow: 'hidden',
+    backgroundColor: '#FF8A65',
   },
   featuredImage: {
     width: '100%',
@@ -235,106 +249,76 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: '50%',
+    height: '60%',
     justifyContent: 'flex-end',
-    padding: 20,
-  },
-  featuredContent: {
-    marginBottom: 10,
-  },
-  featuredSource: {
-    color: '#FF8A65', // Lighter peach/orange for contrast against dark gradient
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginBottom: 6,
+    padding: 24,
   },
   featuredTitle: {
     color: '#FFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-    lineHeight: 26,
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 28,
   },
   pagination: {
     flexDirection: 'row',
-    position: 'absolute',
-    bottom: 10,
-    alignSelf: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.4)',
-    marginHorizontal: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    marginHorizontal: 5,
   },
   activeDot: {
-    backgroundColor: '#FFF',
-    width: 14,
+    backgroundColor: '#FF8A65',
+    width: 24,
   },
   sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
+    marginTop: 10,
     marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#000',
   },
-  listContent: {
-    paddingHorizontal: 20,
+  viewAllText: {
+    color: '#FF8A65',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  picksContainer: {
+    paddingHorizontal: 15,
     paddingBottom: 40,
   },
   verticalCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 24,
+    marginBottom: 12,
+    padding: 10,
+    alignItems: 'center',
   },
   verticalImage: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
+    borderRadius: 20,
+    marginRight: 15,
   },
   verticalContent: {
     flex: 1,
-    padding: 12,
     justifyContent: 'center',
   },
-  verticalSource: {
-    fontSize: 11,
-    color: '#FF8A65',
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
   verticalTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#222',
-    lineHeight: 20,
-  },
-  loadingText: {
-    marginTop: 12,
-    color: '#666',
-    fontWeight: '500',
-  },
-  errorText: {
-    textAlign: 'center',
-    marginVertical: 15,
-    color: '#666',
-  },
-  retryButton: {
-    backgroundColor: '#E65100',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-  },
-  retryText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    lineHeight: 22,
   },
 });
