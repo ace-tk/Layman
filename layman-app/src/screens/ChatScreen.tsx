@@ -10,7 +10,8 @@ import {
   Platform,
   ActivityIndicator,
   Keyboard,
-  SafeAreaView
+  SafeAreaView,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askLaymanAI } from '../services/aiService';
