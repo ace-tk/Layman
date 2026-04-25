@@ -23,7 +23,6 @@ const MOCK_SUMMARIES = [
   "As companies rush to adapt, consumers can expect to see rapid innovations hitting the shelves within the next quarter. The ultimate success of this initiative will depend largely on shifting global supply chains."
 ];
 
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&q=80';
 
 export default function ArticleDetailScreen({ route, navigation }: any) {
   // Grab the article data passed from the HomeScreen
@@ -35,10 +34,12 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
+  const [imageError, setImageError] = useState(false);
+
   // Use fallback if article is missing
   const articleId = article?.article_id || 'mock-id';
   const articleTitle = article?.title || "Technology giants announce unexpected merger in the latest market shakeup affecting millions of users.";
-  const articleImage = article?.image_url || FALLBACK_IMAGE;
+  const articleImage = article?.image_url;
   const articleLink = article?.link || "https://newsdata.io";
 
   const handleShare = async () => {
@@ -151,7 +152,23 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
           </Text>
 
           {/* FULL WIDTH IMAGE */}
-          <Image source={{ uri: articleImage }} style={styles.heroImage} />
+          {(!articleImage || imageError) ? (
+            <View style={[styles.heroImage, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
+              <Ionicons name="image-outline" size={48} color="#E65100" style={{ marginBottom: 8 }} />
+              <Text style={{ color: '#E65100', fontSize: 16, fontWeight: 'bold' }}>
+                No Image Available
+              </Text>
+            </View>
+          ) : (
+            <Image 
+              source={{ uri: articleImage }} 
+              style={styles.heroImage} 
+              onError={() => {
+                console.log('ArticleDetail Image Load Error URI:', articleImage);
+                setImageError(true);
+              }}
+            />
+          )}
 
           {/* SWIPEABLE CONTENT CARDS */}
           <View style={styles.swipeContainer}>

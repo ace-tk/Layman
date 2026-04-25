@@ -16,8 +16,31 @@ import { fetchNews } from '../services/newsService';
 
 const { width } = Dimensions.get('window');
 
-// Fallback image for articles without one
-const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&q=80';
+const ImageWithFallback = ({ uri, style }: any) => {
+  const [error, setError] = useState(false);
+
+  if (!uri || error) {
+    return (
+      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center', padding: 8 }]}>
+        <Ionicons name="image-outline" size={24} color="#E65100" style={{ marginBottom: 4 }} />
+        <Text style={{ color: '#E65100', fontSize: 12, fontWeight: 'bold', textAlign: 'center' }}>
+          No Image Available
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <Image 
+      source={{ uri }} 
+      style={style} 
+      onError={() => {
+        console.log('HomeScreen Image Load Error URI:', uri);
+        setError(true);
+      }}
+    />
+  );
+};
 
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true);
@@ -57,8 +80,8 @@ export default function HomeScreen({ navigation }: any) {
       activeOpacity={0.9}
       onPress={() => navigation.navigate('ArticleDetail', { article: item })}
     >
-      <Image 
-        source={{ uri: item.image_url || FALLBACK_IMAGE }} 
+      <ImageWithFallback 
+        uri={item.image_url} 
         style={styles.featuredImage} 
       />
       <LinearGradient
@@ -79,8 +102,8 @@ export default function HomeScreen({ navigation }: any) {
       activeOpacity={0.7}
       onPress={() => navigation.navigate('ArticleDetail', { article: item })}
     >
-      <Image 
-        source={{ uri: item.image_url || FALLBACK_IMAGE }} 
+      <ImageWithFallback 
+        uri={item.image_url} 
         style={styles.verticalImage} 
       />
       <View style={styles.verticalContent}>
