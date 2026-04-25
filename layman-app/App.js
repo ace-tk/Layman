@@ -6,6 +6,7 @@ import { supabase } from './src/services/supabase';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
+import ChatScreen from './src/screens/ChatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -35,10 +36,15 @@ export default function App() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
           // Main App
-          <>
+          <Stack.Group>
             <Stack.Screen name="Main" component={MainNavigator} />
             <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
-          </>
+            <Stack.Screen 
+              name="Chat" 
+              component={ChatScreen} 
+              options={{ presentation: 'modal' }} 
+            />
+          </Stack.Group>
         ) : (
           // Auth Flow
           <Stack.Screen name="Auth" component={AuthNavigator} />

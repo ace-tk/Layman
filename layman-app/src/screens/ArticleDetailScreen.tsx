@@ -207,7 +207,10 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
 
         {/* FIXED BOTTOM BUTTON */}
         <View style={styles.bottomContainer}>
-          <TouchableOpacity style={styles.askButton}>
+          <TouchableOpacity 
+            style={styles.askButton}
+            onPress={() => navigation.navigate('Chat', { article })}
+          >
             <Ionicons name="chatbubbles-outline" size={20} color="#fff" style={{marginRight: 8}} />
             <Text style={styles.askButtonText}>Ask Layman</Text>
           </TouchableOpacity>
