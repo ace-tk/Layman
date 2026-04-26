@@ -8,10 +8,11 @@ import {
   ActivityIndicator, 
   TouchableOpacity, 
   ScrollView,
-  Dimensions,
-  SafeAreaView
+  Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { fetchNews } from '../services/newsService';
 import { useTheme } from '../context/ThemeContext';
@@ -156,7 +157,8 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={[styles.logoText, { color: colors.text }]}>Layman</Text>

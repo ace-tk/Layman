@@ -13,6 +13,8 @@ const Tab = createBottomTabNavigator();
 export default function MainNavigator() {
   return (
     <Tab.Navigator
+      id="main"
+
       screenListeners={{
         state: () => {
           triggerLightHaptic();

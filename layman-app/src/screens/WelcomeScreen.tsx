@@ -4,9 +4,9 @@ import {
   Text, 
   StyleSheet, 
   Dimensions, 
-  SafeAreaView,
   TouchableOpacity
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { 
@@ -34,7 +34,8 @@ export default function WelcomeScreen({ navigation }: any) {
         style={styles.background}
       />
 
-      <SafeAreaView style={styles.content}>
+      <SafeAreaView style={[styles.content, { flex: 1 }]} edges={['top']}>
+
         {/* Title */}
         <Animated.View entering={FadeInUp.delay(200).duration(800)} style={styles.header}>
           <Text style={styles.title}>Layman</Text>

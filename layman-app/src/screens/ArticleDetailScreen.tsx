@@ -7,10 +7,11 @@ import {
   TouchableOpacity, 
   ScrollView, 
   Share, 
-  Dimensions,
-  SafeAreaView
+  Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
@@ -119,7 +120,8 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+
       <View style={styles.container}>
         
         {/* TOP BAR */}

@@ -4,12 +4,13 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView, 
   ScrollView,
   Switch,
   Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
 import { triggerLightHaptic } from '../services/haptics';
@@ -96,7 +97,8 @@ export default function ProfileScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={[styles.headerText, { color: colors.text }]}>Profile</Text>

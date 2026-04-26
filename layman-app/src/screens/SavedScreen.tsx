@@ -8,10 +8,11 @@ import {
   Image, 
   TouchableOpacity,
   ActivityIndicator,
-  SafeAreaView,
   Dimensions
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
@@ -189,7 +190,8 @@ export default function SavedScreen({ navigation }: any) {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={[styles.headerText, { color: colors.text }]}>Saved</Text>

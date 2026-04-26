@@ -10,10 +10,11 @@ import {
   Platform,
   ActivityIndicator,
   Keyboard,
-  SafeAreaView,
   ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+
 import { Audio } from 'expo-av';
 import * as Speech from 'expo-speech';
 import * as FileSystem from 'expo-file-system';
@@ -141,7 +142,8 @@ export default function ChatScreen({ route, navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]} edges={['top']}>
+
       <KeyboardAvoidingView 
         style={[styles.container, { backgroundColor: colors.background }]} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
