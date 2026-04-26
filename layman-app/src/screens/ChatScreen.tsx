@@ -57,6 +57,7 @@ export default function ChatScreen({ route, navigation }: any) {
       const botMsg = { id: (Date.now() + 1).toString(), text: response, isBot: true };
       setMessages(prev => [...prev, botMsg]);
     } catch (error: any) {
+      console.log()
       const errorMsg = { 
         id: (Date.now() + 1).toString(), 
         text: "I'm sorry, I encountered an error connecting to my brain. Please check your API key.", 

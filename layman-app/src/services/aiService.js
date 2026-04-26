@@ -37,9 +37,11 @@ export const askLaymanAI = async (articleContext, userMessage, chatHistory = [])
   };
 
   // NOTE: gemini-1.5-flash-latest is not available for this key/version. Switching to available gemini-2.0-flash.
-  const modelName = 'gemini-2.0-flash';
-  const API_URL = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
+  // use Gemini 2.5 Flash
   
+  const modelName = 'gemini-2.5-flash';
+  const API_URL = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
+
   console.log(`[DEBUG] Calling Gemini API (Model: ${modelName})`);
 
   try {
@@ -53,7 +55,7 @@ export const askLaymanAI = async (articleContext, userMessage, chatHistory = [])
 
     const statusCode = response.status;
     const responseText = await response.text();
-    
+
     console.log(`[DEBUG] Status: ${statusCode}`);
     console.log(`[DEBUG] Full Response:`, responseText);
 
@@ -63,7 +65,7 @@ export const askLaymanAI = async (articleContext, userMessage, chatHistory = [])
 
     const data = JSON.parse(responseText);
     const botText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (botText) {
       return botText.trim();
     } else {
