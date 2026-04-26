@@ -15,6 +15,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
 import { triggerLightHaptic } from '../services/haptics';
+import { addToCache, removeFromCache } from '../services/offlineService';
+
 
 
 const { width } = Dimensions.get('window');
@@ -72,17 +74,23 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
       if (isBookmarked) {
         await supabase.from('saved_articles').delete().eq('user_id', userId).eq('article_id', articleId);
         setIsBookmarked(false);
+        await removeFromCache(articleId);
       } else {
-        await supabase.from('saved_articles').insert({
+        const newArticle = {
           user_id: userId,
           article_id: articleId,
           title: articleTitle,
           source: article?.source_id || 'NEWS',
           image_url: articleImage,
-          link: articleLink
-        });
+          link: articleLink,
+          id: Date.now(), // Temporary local ID for keyExtractor until sync
+          created_at: new Date().toISOString()
+        };
+        await supabase.from('saved_articles').insert(newArticle);
         setIsBookmarked(true);
+        await addToCache(newArticle);
       }
+
     } catch (error) {
       console.log('Error toggling bookmark', error);
     } finally {

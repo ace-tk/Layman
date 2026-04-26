@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { getCachedSavedArticles, cacheSavedArticles } from '../services/offlineService';
+
 
 const { width } = Dimensions.get('window');
 
@@ -55,10 +57,19 @@ export default function SavedScreen({ navigation }: any) {
   const { colors, isDark } = useTheme();
   const [savedArticles, setSavedArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
+
 
   const fetchSavedArticles = async () => {
     try {
-      setLoading(true);
+      // 1. Load from cache first for instant UI
+      const cached = await getCachedSavedArticles();
+      if (cached.length > 0 && loading) {
+        setSavedArticles(cached);
+        setLoading(false);
+      }
+
+      // 2. Attempt to fetch from Supabase
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -69,16 +80,24 @@ export default function SavedScreen({ navigation }: any) {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching bookmarks:', error);
+        throw error;
       } else {
         setSavedArticles(data || []);
+        setIsOffline(false);
+        // 3. Update cache
+        await cacheSavedArticles(data || []);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.log('Sync failed, using offline data', error);
+      setIsOffline(true);
+      // Fallback to cache if we haven't already
+      const cached = await getCachedSavedArticles();
+      setSavedArticles(cached);
     } finally {
       setLoading(false);
     }
   };
+
 
   useFocusEffect(
     useCallback(() => {
@@ -131,6 +150,15 @@ export default function SavedScreen({ navigation }: any) {
           <Ionicons name="search" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
+
+      {/* OFFLINE INDICATOR */}
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Ionicons name="cloud-offline-outline" size={16} color="#FFF" style={{ marginRight: 8 }} />
+          <Text style={styles.offlineText}>Offline Mode • Showing cached articles</Text>
+        </View>
+      )}
+
 
       {/* LIST */}
       {savedArticles.length === 0 ? (
@@ -232,5 +260,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 22,
-  }
+  },
+  offlineBanner: {
+    backgroundColor: '#D47545',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+  },
+  offlineText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
 });
+
