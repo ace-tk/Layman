@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { supabase } from '../services/supabase';
+import { triggerLightHaptic } from '../services/haptics';
+
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -54,8 +56,10 @@ export default function LoginScreen() {
 
   const handleAuth = async () => {
     if (!validate()) return;
+    triggerLightHaptic();
 
     setLoading(true);
+
     setAuthError('');
     
     try {
@@ -172,11 +176,13 @@ export default function LoginScreen() {
               <TouchableOpacity 
                 style={styles.toggleButton} 
                 onPress={() => {
+                  triggerLightHaptic();
                   setIsSignUp(!isSignUp);
                   setAuthError('');
                   setEmailError('');
                   setPasswordError('');
                 }}
+
                 disabled={loading}
               >
                 <Text style={styles.toggleText}>

@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { triggerLightHaptic } from '../services/haptics';
+
 
 import HomeScreen from '../screens/HomeScreen';
 import SavedScreen from '../screens/SavedScreen';
@@ -11,6 +13,11 @@ const Tab = createBottomTabNavigator();
 export default function MainNavigator() {
   return (
     <Tab.Navigator
+      screenListeners={{
+        state: () => {
+          triggerLightHaptic();
+        },
+      }}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {

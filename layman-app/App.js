@@ -9,6 +9,8 @@ import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import { updateStreak } from './src/services/streakService';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -22,8 +24,11 @@ export default function App() {
     // 1. Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      // Initialize streak
+      updateStreak();
       SplashScreen.hideAsync();
     });
+
 
     // 2. Listen for auth changes (login, logout, signup)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {

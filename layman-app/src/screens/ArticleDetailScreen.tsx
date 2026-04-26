@@ -14,6 +14,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { triggerLightHaptic } from '../services/haptics';
+
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +65,9 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
 
   const handleBookmarkToggle = async () => {
     if (!userId || isProcessing || !article) return;
+    triggerLightHaptic();
     setIsProcessing(true);
+
     try {
       if (isBookmarked) {
         await supabase.from('saved_articles').delete().eq('user_id', userId).eq('article_id', articleId);
@@ -88,7 +92,9 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
 
   const handleShare = async () => {
     try {
+      triggerLightHaptic();
       await Share.share({ message: `Read this on Layman: ${articleTitle}\n\n${articleLink}` });
+
     } catch (error) {
       console.log('Error sharing', error);
     }
@@ -96,7 +102,9 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
 
   const openOriginalArticle = async () => {
     try {
+      triggerLightHaptic();
       await WebBrowser.openBrowserAsync(articleLink);
+
     } catch (error) {
       console.log('Error opening browser', error);
     }
@@ -109,9 +117,13 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
         {/* TOP BAR */}
         <View style={styles.topBar}>
           <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
+            onPress={() => {
+              triggerLightHaptic();
+              navigation.goBack();
+            }} 
             style={[styles.backButton, { backgroundColor: isDark ? '#1F1F1F' : '#F5E6D3' }]}
           >
+
             <Ionicons name="chevron-back" size={24} color={isDark ? "#AAA" : "#555"} />
           </TouchableOpacity>
           
@@ -192,9 +204,13 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
         <View style={styles.bottomBar}>
           <TouchableOpacity 
             style={styles.askLaymanBtn}
-            onPress={() => navigation.navigate('Chat', { article })}
+            onPress={() => {
+              triggerLightHaptic();
+              navigation.navigate('Chat', { article });
+            }}
             activeOpacity={0.8}
           >
+
             <MaterialCommunityIcons name="sparkles" size={20} color="#FFF" style={{ marginRight: 10 }} />
             <Text style={styles.askLaymanText}>Ask Layman</Text>
           </TouchableOpacity>

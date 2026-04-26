@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import Animated, { 
   FadeInUp,
 } from 'react-native-reanimated';
+import { triggerLightHaptic } from '../services/haptics';
+
 
 const { width } = Dimensions.get('window');
 const BUTTON_HEIGHT = 70;
@@ -19,8 +21,10 @@ const HANDLE_SIZE = 54;
 
 export default function WelcomeScreen({ navigation }: any) {
   const onNavigate = () => {
+    triggerLightHaptic();
     navigation.navigate('Login');
   };
+
 
   return (
     <View style={styles.container}>

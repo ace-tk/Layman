@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fetchNews } from '../services/newsService';
 import { useTheme } from '../context/ThemeContext';
+import { triggerLightHaptic } from '../services/haptics';
+
 
 const { width } = Dimensions.get('window');
 
@@ -84,8 +86,12 @@ export default function HomeScreen({ navigation }: any) {
     <TouchableOpacity 
       style={styles.featuredCard} 
       activeOpacity={0.9}
-      onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+      onPress={() => {
+        triggerLightHaptic();
+        navigation.navigate('ArticleDetail', { article: item });
+      }}
     >
+
       <View style={styles.featuredWrapper}>
         <ImageWithFallback 
           uri={item.image_url} 
@@ -107,8 +113,12 @@ export default function HomeScreen({ navigation }: any) {
     <TouchableOpacity 
       style={[styles.verticalCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]} 
       activeOpacity={0.7}
-      onPress={() => navigation.navigate('ArticleDetail', { article: item })}
+      onPress={() => {
+        triggerLightHaptic();
+        navigation.navigate('ArticleDetail', { article: item });
+      }}
     >
+
       <ImageWithFallback 
         uri={item.image_url} 
         style={styles.verticalImage} 
@@ -134,7 +144,11 @@ export default function HomeScreen({ navigation }: any) {
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={[styles.logoText, { color: colors.text }]}>Layman</Text>
-        <TouchableOpacity style={[styles.searchButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+        <TouchableOpacity 
+          style={[styles.searchButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
+          onPress={() => triggerLightHaptic()}
+        >
+
           <Ionicons name="search" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -173,7 +187,11 @@ export default function HomeScreen({ navigation }: any) {
         {/* TODAY'S PICKS */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Picks</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Saved')}>
+          <TouchableOpacity onPress={() => {
+            triggerLightHaptic();
+            navigation.navigate('Saved');
+          }}>
+
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>

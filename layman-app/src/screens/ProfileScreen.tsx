@@ -12,23 +12,33 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { triggerLightHaptic } from '../services/haptics';
+import { getStreak } from '../services/streakService';
+
 
 export default function ProfileScreen({ navigation }: any) {
   const { colors, toggleTheme, isDark } = useTheme();
   const [email, setEmail] = useState<string | null>(null);
   const [notifications, setNotifications] = useState(true);
+  const [streak, setStreak] = useState(0);
+
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         setEmail(user.email || null);
       }
+      
+      const currentStreak = await getStreak();
+      setStreak(currentStreak);
     };
-    getUser();
+    getUserData();
+
   }, []);
 
   const handleLogout = async () => {
+    triggerLightHaptic();
     Alert.alert(
       "Sign Out",
       "Are you sure you want to sign out?",
@@ -38,6 +48,7 @@ export default function ProfileScreen({ navigation }: any) {
           text: "Sign Out", 
           style: "destructive",
           onPress: async () => {
+            triggerLightHaptic();
             await supabase.auth.signOut();
           } 
         }
@@ -53,7 +64,12 @@ export default function ProfileScreen({ navigation }: any) {
   const ProfileItem = ({ icon, title, value, type = 'arrow', onValueChange }: any) => (
     <TouchableOpacity 
       style={styles.itemRow} 
-      onPress={() => type === 'arrow' && navigation.navigate('Saved')}
+      onPress={() => {
+        if (type === 'arrow') {
+          triggerLightHaptic();
+          navigation.navigate('Saved');
+        }
+      }}
       activeOpacity={type === 'arrow' ? 0.6 : 1}
     >
       <View style={styles.itemLeft}>
@@ -68,7 +84,10 @@ export default function ProfileScreen({ navigation }: any) {
       ) : (
         <Switch 
           value={value} 
-          onValueChange={onValueChange}
+          onValueChange={(val) => {
+            triggerLightHaptic();
+            onValueChange(val);
+          }}
           trackColor={{ false: "#333", true: "#FF8A65" }}
           thumbColor="#FFF"
         />
@@ -98,6 +117,20 @@ export default function ProfileScreen({ navigation }: any) {
             <Ionicons name="pencil-sharp" size={16} color={isDark ? "#AAA" : "#666"} />
           </TouchableOpacity>
         </View>
+
+        {/* STREAK CARD */}
+        <View style={[styles.streakCard, { backgroundColor: isDark ? '#1F1F1F' : '#FFF9F5', borderColor: isDark ? '#333' : '#FFEDD5' }]}>
+          <View style={styles.streakInfo}>
+            <View style={styles.streakIconWrapper}>
+              <Text style={styles.streakEmoji}>🔥</Text>
+            </View>
+            <View>
+              <Text style={[styles.streakCount, { color: colors.text }]}>{streak} Day Streak</Text>
+              <Text style={[styles.streakSubtext, { color: colors.subtext }]}>Keep reading to grow your streak!</Text>
+            </View>
+          </View>
+        </View>
+
 
         {/* SECTION: CONTENT */}
         <View style={styles.section}>
@@ -281,5 +314,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#AAA',
     marginBottom: 20,
-  }
+  },
+  streakCard: {
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 25,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  streakInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  streakIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFEDD5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  streakEmoji: {
+    fontSize: 24,
+  },
+  streakCount: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  streakSubtext: {
+    fontSize: 13,
+    marginTop: 2,
+    fontWeight: '500',
+  },
 });
+
