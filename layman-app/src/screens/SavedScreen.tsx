@@ -6,22 +6,36 @@ import {
   FlatList, 
   Image, 
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  SafeAreaView,
+  Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
+
+const { width } = Dimensions.get('window');
+
+// Conversational Headline Helper
+const simplifyHeadline = (text: string) => {
+  if (!text) return "";
+  let simple = text;
+  simple = simple.replace(/announces/i, "says");
+  simple = simple.replace(/launches/i, "just started");
+  simple = simple.replace(/merger/i, "joining together");
+  if (simple.length > 50) {
+    simple = simple.substring(0, 47) + "...";
+  }
+  return simple;
+};
 
 const ImageWithFallback = ({ uri, style }: any) => {
   const [error, setError] = useState(false);
 
   if (!uri || error) {
     return (
-      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center', padding: 8 }]}>
-        <Ionicons name="image-outline" size={24} color="#E65100" style={{ marginBottom: 4 }} />
-        <Text style={{ color: '#E65100', fontSize: 10, fontWeight: 'bold', textAlign: 'center' }}>
-          No Image
-        </Text>
+      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
+        <Ionicons name="image-outline" size={32} color="#E65100" />
       </View>
     );
   }
@@ -30,10 +44,7 @@ const ImageWithFallback = ({ uri, style }: any) => {
     <Image 
       source={{ uri }} 
       style={style} 
-      onError={() => {
-        console.log('SavedScreen Image Load Error URI:', uri);
-        setError(true);
-      }}
+      onError={() => setError(true)}
     />
   );
 };
@@ -66,7 +77,6 @@ export default function SavedScreen({ navigation }: any) {
     }
   };
 
-  // Allows it to refresh every time the user clicks on the "Saved" tab
   useFocusEffect(
     useCallback(() => {
       fetchSavedArticles();
@@ -74,7 +84,6 @@ export default function SavedScreen({ navigation }: any) {
   );
 
   const renderVerticalItem = ({ item }: { item: any }) => {
-    // Reconstruct the article structure expected by ArticleDetailScreen
     const reconstructedArticle = {
       article_id: item.article_id,
       title: item.title,
@@ -94,117 +103,140 @@ export default function SavedScreen({ navigation }: any) {
           style={styles.verticalImage} 
         />
         <View style={styles.verticalContent}>
-          <Text style={styles.verticalSource}>{item.source?.toUpperCase() || 'NEWS'}</Text>
-          <Text style={styles.verticalTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.verticalTitle} numberOfLines={2}>
+            {simplifyHeadline(item.title)}
+          </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#FF8A65" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.headerText}>Saved</Text>
-        <TouchableOpacity>
+        <TouchableOpacity style={styles.searchButton}>
           <Ionicons name="search" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
       {/* LIST */}
-      {loading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#FF8A65" />
-        </View>
-      ) : savedArticles.length === 0 ? (
+      {savedArticles.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="bookmark-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No saved articles yet</Text>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="bookmark-outline" size={60} color="#D47545" />
+          </View>
+          <Text style={styles.emptyTitle}>Nothing here yet</Text>
+          <Text style={styles.emptySubtitle}>Articles you save will show up here</Text>
         </View>
       ) : (
         <FlatList
           data={savedArticles}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderVerticalItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5', // Warm peach background
+    backgroundColor: '#FFF0E5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFF0E5',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60, // Adjust for safe area
-    paddingBottom: 20,
-    backgroundColor: '#FFF0E5',
+    paddingVertical: 15,
   },
   headerText: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#333',
-    letterSpacing: -0.5,
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#000',
+    letterSpacing: -1,
+  },
+  searchButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   listContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+    paddingTop: 10,
     paddingBottom: 40,
   },
   verticalCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 24,
+    marginBottom: 12,
+    padding: 10,
+    alignItems: 'center',
   },
   verticalImage: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
+    borderRadius: 20,
+    marginRight: 15,
   },
   verticalContent: {
     flex: 1,
-    padding: 12,
     justifyContent: 'center',
   },
-  verticalSource: {
-    fontSize: 11,
-    color: '#FF8A65',
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
   verticalTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#222',
-    lineHeight: 20,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000',
+    lineHeight: 22,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 40,
   },
-  emptyText: {
-    marginTop: 16,
+  emptyIconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FFEAD6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
     fontSize: 16,
-    color: '#999',
-    fontWeight: '500',
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
   }
 });
