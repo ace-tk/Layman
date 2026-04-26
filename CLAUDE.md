@@ -42,3 +42,11 @@
 - **Simplicity First**: Prefer clean, native solutions over adding heavy third-party libraries.
 - **Performance**: Optimize lists with `FlatList` and memoize expensive calculations.
 - **UX Focus**: Every interaction should feel premium, smooth, and interactive.
+
+## 8. Structured AI Workflow
+Always follow this 4-step process for every feature:
+1.  **/plan**: Research requirements and break the feature into logical, actionable steps.
+2.  **/implement**: Write clean, modular code following the project's coding rules and UI guidelines.
+3.  **/review**: Perform self-checks for bugs, edge cases, responsiveness, and UI fidelity.
+4.  **/commit**: Provide a clear, professional summary of the changes made.
+

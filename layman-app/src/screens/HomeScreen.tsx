@@ -12,14 +12,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-
 import { LinearGradient } from 'expo-linear-gradient';
 import { fetchNews } from '../services/newsService';
 import { useTheme } from '../context/ThemeContext';
 import { triggerLightHaptic } from '../services/haptics';
 import { sendBreakingNewsNotification } from '../services/notificationService';
-
-
 
 const { width } = Dimensions.get('window');
 
@@ -66,7 +63,6 @@ export default function HomeScreen({ navigation }: any) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [notificationSent, setNotificationSent] = useState(false);
 
-
   useEffect(() => {
     loadNews();
   }, []);
@@ -88,10 +84,9 @@ export default function HomeScreen({ navigation }: any) {
               "The AI giant just secured massive funding to accelerate development. Tap to read the summary."
             );
             setNotificationSent(true);
-          }, 3000); // Wait 3 seconds after load to feel natural
+          }, 3000);
         }
       }
-
     } catch (err: any) {
       setErrorStatus(err.message || 'Failed to load news');
     } finally {
@@ -108,34 +103,33 @@ export default function HomeScreen({ navigation }: any) {
         navigation.navigate('ArticleDetail', { article: item });
       }}
     >
-
       <View style={styles.featuredWrapper}>
         <ImageWithFallback 
           uri={item.image_url} 
           style={styles.featuredImage} 
         />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.85)']}
-          style={styles.gradientOverlay}
-        >
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.featuredGradient}
+        />
+        <View style={styles.featuredContent}>
           <Text style={styles.featuredTitle} numberOfLines={2}>
             {simplifyHeadline(item.title)}
           </Text>
-        </LinearGradient>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
   const renderVerticalItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
-      style={[styles.verticalCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]} 
+      style={[styles.verticalCard, { backgroundColor: isDark ? '#1F1F1F' : '#FFF3E0' }]} 
       activeOpacity={0.7}
       onPress={() => {
         triggerLightHaptic();
         navigation.navigate('ArticleDetail', { article: item });
       }}
     >
-
       <ImageWithFallback 
         uri={item.image_url} 
         style={styles.verticalImage} 
@@ -151,14 +145,24 @@ export default function HomeScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color="#FF8A65" />
+        <ActivityIndicator size="large" color="#FF8A65" testID="loading-indicator" />
+      </View>
+    );
+  }
+
+  if (errorStatus) {
+    return (
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
+        <Text style={{ color: '#FF8A65' }}>{errorStatus}</Text>
+        <TouchableOpacity onPress={loadNews} style={{ marginTop: 20 }}>
+          <Text style={{ color: colors.text }}>Try Again</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={[styles.logoText, { color: colors.text }]}>Layman</Text>
@@ -166,7 +170,6 @@ export default function HomeScreen({ navigation }: any) {
           style={[styles.searchButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}
           onPress={() => triggerLightHaptic()}
         >
-
           <Ionicons name="search" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -187,7 +190,6 @@ export default function HomeScreen({ navigation }: any) {
               setActiveIndex(Math.round(index));
             }}
           />
-          {/* Pagination Indicators below carousel */}
           <View style={styles.pagination}>
             {featuredArticles.map((_, index) => (
               <View 
@@ -209,7 +211,6 @@ export default function HomeScreen({ navigation }: any) {
             triggerLightHaptic();
             navigation.navigate('Saved');
           }}>
-
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
@@ -248,11 +249,8 @@ const styles = StyleSheet.create({
     letterSpacing: -1,
   },
   searchButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 10,
+    borderRadius: 15,
   },
   carouselSection: {
     marginBottom: 20,
@@ -260,27 +258,29 @@ const styles = StyleSheet.create({
   featuredCard: {
     width: width,
     paddingHorizontal: 20,
-    height: 300,
   },
   featuredWrapper: {
-    flex: 1,
+    height: 250,
     borderRadius: 30,
     overflow: 'hidden',
-    backgroundColor: '#FF8A65',
+    backgroundColor: '#FFEBD7',
   },
   featuredImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
-  gradientOverlay: {
+  featuredGradient: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
     height: '60%',
-    justifyContent: 'flex-end',
-    padding: 24,
+  },
+  featuredContent: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
   featuredTitle: {
     color: '#FFF',
@@ -291,59 +291,57 @@ const styles = StyleSheet.create({
   pagination: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 15,
+    marginTop: 12,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     marginHorizontal: 5,
   },
   activeDot: {
+    width: 25,
     backgroundColor: '#FF8A65',
-    width: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    marginTop: 10,
     marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: '800',
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   viewAllText: {
     color: '#FF8A65',
-    fontSize: 14,
-    fontWeight: '700',
+    fontWeight: 'bold',
   },
   picksContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
   },
   verticalCard: {
     flexDirection: 'row',
-    borderRadius: 24,
-    marginBottom: 12,
-    padding: 10,
     alignItems: 'center',
+    padding: 12,
+    borderRadius: 25,
+    marginBottom: 15,
   },
   verticalImage: {
-    width: 90,
-    height: 90,
+    width: 80,
+    height: 80,
     borderRadius: 20,
-    marginRight: 15,
   },
   verticalContent: {
     flex: 1,
-    justifyContent: 'center',
+    marginLeft: 15,
   },
   verticalTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
     lineHeight: 22,
-  },
+  }
 });
