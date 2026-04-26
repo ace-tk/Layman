@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ThemeProvider } from './src/context/ThemeContext';
 import { supabase } from './src/services/supabase';
 import AuthNavigator from './src/navigation/AuthNavigator';
 import MainNavigator from './src/navigation/MainNavigator';
@@ -33,26 +34,28 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {session ? (
-            // Main App
-            <Stack.Group>
-              <Stack.Screen name="Main" component={MainNavigator} />
-              <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
-              <Stack.Screen 
-                name="Chat" 
-                component={ChatScreen} 
-                options={{ presentation: 'modal' }} 
-              />
-            </Stack.Group>
-          ) : (
-            // Auth Flow
-            <Stack.Screen name="Auth" component={AuthNavigator} />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {session ? (
+              // Main App
+              <Stack.Group>
+                <Stack.Screen name="Main" component={MainNavigator} />
+                <Stack.Screen name="ArticleDetail" component={ArticleDetailScreen} />
+                <Stack.Screen 
+                  name="Chat" 
+                  component={ChatScreen} 
+                  options={{ presentation: 'modal' }} 
+                />
+              </Stack.Group>
+            ) : (
+              // Auth Flow
+              <Stack.Screen name="Auth" component={AuthNavigator} />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }

@@ -15,8 +15,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { askLaymanAI } from '../services/aiService';
+import { useTheme } from '../context/ThemeContext';
 
 export default function ChatScreen({ route, navigation }: any) {
+  const { colors, isDark } = useTheme();
   const { article } = route.params;
   const articleTitle = article?.title || "Technology news article";
   const articleDescription = article?.description || articleTitle;
@@ -67,25 +69,28 @@ export default function ChatScreen({ route, navigation }: any) {
   };
 
   const renderMessage = ({ item }: { item: any }) => (
-    <View style={[styles.messageBubble, item.isBot ? styles.botBubble : styles.userBubble]}>
+    <View style={[
+      styles.messageBubble, 
+      item.isBot ? styles.botBubble : [styles.userBubble, { backgroundColor: isDark ? '#2A2A2A' : '#FFF' }]
+    ]}>
       {item.isBot && <Ionicons name="sparkles" size={16} color="#FFF" style={styles.botIcon} />}
-      <Text style={[styles.messageText, item.isBot ? styles.botText : styles.userText]}>
+      <Text style={[styles.messageText, item.isBot ? styles.botText : { color: colors.text }]}>
         {item.text}
       </Text>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView 
-        style={styles.container} 
+        style={[styles.container, { backgroundColor: colors.background }]} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* HEADER */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle} numberOfLines={1}>Ask Layman</Text>
+        <View style={[styles.header, { backgroundColor: isDark ? '#1F1F1F' : '#FFF' }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>Ask Layman</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-            <Ionicons name="close-circle" size={28} color="#666" />
+            <Ionicons name="close-circle" size={28} color={isDark ? "#AAA" : "#666"} />
           </TouchableOpacity>
         </View>
 
@@ -103,7 +108,7 @@ export default function ChatScreen({ route, navigation }: any) {
         {/* LOADING INDICATOR */}
         {isLoading && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#E65100" />
+            <ActivityIndicator size="small" color="#FF8A65" />
             <Text style={styles.loadingText}>Layman is thinking...</Text>
           </View>
         )}
@@ -115,7 +120,7 @@ export default function ChatScreen({ route, navigation }: any) {
               {suggestions.map((suggestion, idx) => (
                 <TouchableOpacity 
                   key={idx} 
-                  style={styles.chip}
+                  style={[styles.chip, { backgroundColor: isDark ? '#1F1F1F' : '#FFF', borderColor: isDark ? '#333' : '#FFE0B2' }]}
                   onPress={() => sendMessage(suggestion)}
                 >
                   <Text style={styles.chipText}>{suggestion}</Text>
@@ -126,13 +131,14 @@ export default function ChatScreen({ route, navigation }: any) {
         )}
 
         {/* INPUT BAR */}
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: isDark ? '#1F1F1F' : '#FFF' }]}>
           <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="mic-outline" size={24} color="#666" />
+            <Ionicons name="mic-outline" size={24} color={isDark ? "#AAA" : "#666"} />
           </TouchableOpacity>
           <TextInput
-            style={styles.textInput}
+            style={[styles.textInput, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', color: colors.text }]}
             placeholder="Type your question..."
+            placeholderTextColor={isDark ? "#666" : "#999"}
             value={inputText}
             onChangeText={setInputText}
             onSubmitEditing={() => sendMessage(inputText)}
@@ -155,14 +161,12 @@ export default function ChatScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFF0E5',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     overflow: 'hidden',
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5',
   },
   header: {
     flexDirection: 'row',
@@ -171,12 +175,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(0,0,0,0.05)',
-    backgroundColor: '#FFF',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   closeButton: {
     position: 'absolute',
@@ -195,12 +197,11 @@ const styles = StyleSheet.create({
   },
   botBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#E65100',
+    backgroundColor: '#FF8A65',
     borderBottomLeftRadius: 4,
   },
   userBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: '#FFF',
     borderBottomRightRadius: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -220,9 +221,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     flexShrink: 1,
   },
-  userText: {
-    color: '#333',
-  },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginLeft: 8,
-    color: '#E65100',
+    color: '#FF8A65',
     fontSize: 14,
     fontStyle: 'italic',
   },
@@ -240,16 +238,14 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   chip: {
-    backgroundColor: '#FFF',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#FFE0B2',
   },
   chipText: {
-    color: '#E65100',
+    color: '#FF8A65',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -257,13 +253,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#FFF',
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
   },
   textInput: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -275,7 +269,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   sendButton: {
-    backgroundColor: '#E65100',
+    backgroundColor: '#FF8A65',
     borderRadius: 20,
     padding: 10,
     justifyContent: 'center',

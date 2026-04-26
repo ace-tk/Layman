@@ -13,6 +13,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../services/supabase';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,7 @@ const MOCK_SUMMARIES = [
 ];
 
 export default function ArticleDetailScreen({ route, navigation }: any) {
+  const { colors, isDark } = useTheme();
   const { article } = route.params || { article: null };
   const [activeIndex, setActiveIndex] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -101,38 +103,41 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         
         {/* TOP BAR */}
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#555" />
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={[styles.backButton, { backgroundColor: isDark ? '#1F1F1F' : '#F5E6D3' }]}
+          >
+            <Ionicons name="chevron-back" size={24} color={isDark ? "#AAA" : "#555"} />
           </TouchableOpacity>
           
           <View style={styles.rightIcons}>
             <TouchableOpacity onPress={openOriginalArticle} style={styles.actionIconButton}>
-              <Ionicons name="link-outline" size={24} color="#555" />
+              <Ionicons name="link-outline" size={24} color={isDark ? "#AAA" : "#555"} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleBookmarkToggle} disabled={isProcessing} style={styles.actionIconButton}>
-              <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={22} color={isBookmarked ? "#D47545" : "#555"} />
+              <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={22} color={isBookmarked ? "#D47545" : (isDark ? "#AAA" : "#555")} />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleShare} style={styles.actionIconButton}>
-              <Ionicons name="share-outline" size={24} color="#555" />
+              <Ionicons name="share-outline" size={24} color={isDark ? "#AAA" : "#555"} />
             </TouchableOpacity>
           </View>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           {/* HEADLINE */}
-          <Text style={styles.headline} numberOfLines={3}>
+          <Text style={[styles.headline, { color: colors.text }]} numberOfLines={3}>
             {articleTitle}
           </Text>
 
           {/* ARTICLE IMAGE */}
           <View style={styles.imageContainer}>
             {(!articleImage || imageError) ? (
-              <View style={[styles.heroImage, { backgroundColor: '#F5E6D3', justifyContent: 'center', alignItems: 'center' }]}>
+              <View style={[styles.heroImage, { backgroundColor: isDark ? '#1F1F1F' : '#F5E6D3', justifyContent: 'center', alignItems: 'center' }]}>
                 <Ionicons name="image-outline" size={48} color="#D47545" />
               </View>
             ) : (
@@ -158,8 +163,8 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
             >
               {MOCK_SUMMARIES.map((text, index) => (
                 <View key={index} style={styles.cardWrapper}>
-                  <View style={styles.infoCard}>
-                    <Text style={styles.laymanText} numberOfLines={6}>
+                  <View style={[styles.infoCard, { backgroundColor: isDark ? '#1F1F1F' : '#FFF9F5' }]}>
+                    <Text style={[styles.laymanText, { color: isDark ? '#EEE' : '#333' }]} numberOfLines={6}>
                       {text}
                     </Text>
                   </View>
@@ -172,7 +177,11 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
               {MOCK_SUMMARIES.map((_, index) => (
                 <View 
                   key={index} 
-                  style={[styles.dot, activeIndex === index && styles.activeDot]} 
+                  style={[
+                    styles.dot, 
+                    { backgroundColor: isDark ? '#333' : '#E0C9B1' },
+                    activeIndex === index && styles.activeDot
+                  ]} 
                 />
               ))}
             </View>
@@ -199,7 +208,6 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFF1E6', // Warm background
   },
   container: {
     flex: 1,
@@ -215,7 +223,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F5E6D3',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -236,7 +243,6 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#1A1A1A',
     paddingHorizontal: 25,
     marginTop: 20,
     marginBottom: 25,
@@ -261,7 +267,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   infoCard: {
-    backgroundColor: '#FFF9F5',
     borderRadius: 24,
     padding: 24,
     minHeight: 180,
@@ -275,7 +280,6 @@ const styles = StyleSheet.create({
   laymanText: {
     fontSize: 18,
     lineHeight: 28,
-    color: '#333',
     fontWeight: '500',
     textAlign: 'left',
   },
@@ -287,7 +291,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E0C9B1',
     marginHorizontal: 5,
   },
   activeDot: {

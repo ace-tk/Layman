@@ -14,36 +14,31 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fetchNews } from '../services/newsService';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 // Conversational Headline Helper
 const simplifyHeadline = (text: string) => {
   if (!text) return "";
-  
-  // Basic truncation & conversational tone logic
   let simple = text;
-  
-  // Example simplistic transformations
   simple = simple.replace(/announces/i, "says");
   simple = simple.replace(/launches/i, "just started");
   simple = simple.replace(/merger/i, "joining together");
-  
-  // Truncate to ~50 characters
   if (simple.length > 50) {
     simple = simple.substring(0, 47) + "...";
   }
-  
   return simple;
 };
 
 const ImageWithFallback = ({ uri, style }: any) => {
+  const { colors, isDark } = useTheme();
   const [error, setError] = useState(false);
 
   if (!uri || error) {
     return (
-      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
-        <Ionicons name="image-outline" size={32} color="#E65100" />
+      <View style={[style, { backgroundColor: isDark ? '#2A2A2A' : '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
+        <Ionicons name="image-outline" size={32} color="#FF8A65" />
       </View>
     );
   }
@@ -58,8 +53,9 @@ const ImageWithFallback = ({ uri, style }: any) => {
 };
 
 export default function HomeScreen({ navigation }: any) {
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [errorStatus, setErrorStatus] = useState<string | null>(null);
   const [articles, setArticles] = useState<any[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -71,14 +67,14 @@ export default function HomeScreen({ navigation }: any) {
   const loadNews = async () => {
     try {
       setLoading(true);
-      setError(null);
+      setErrorStatus(null);
       const news = await fetchNews();
       if (news && news.length > 0) {
         setFeaturedArticles(news.slice(0, 4));
         setArticles(news.slice(4));
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load news');
+      setErrorStatus(err.message || 'Failed to load news');
     } finally {
       setLoading(false);
     }
@@ -96,7 +92,7 @@ export default function HomeScreen({ navigation }: any) {
           style={styles.featuredImage} 
         />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.7)']}
+          colors={['transparent', 'rgba(0,0,0,0.85)']}
           style={styles.gradientOverlay}
         >
           <Text style={styles.featuredTitle} numberOfLines={2}>
@@ -109,7 +105,7 @@ export default function HomeScreen({ navigation }: any) {
 
   const renderVerticalItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
-      style={styles.verticalCard} 
+      style={[styles.verticalCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]} 
       activeOpacity={0.7}
       onPress={() => navigation.navigate('ArticleDetail', { article: item })}
     >
@@ -118,7 +114,7 @@ export default function HomeScreen({ navigation }: any) {
         style={styles.verticalImage} 
       />
       <View style={styles.verticalContent}>
-        <Text style={styles.verticalTitle} numberOfLines={2}>
+        <Text style={[styles.verticalTitle, { color: colors.text }]} numberOfLines={2}>
           {simplifyHeadline(item.title)}
         </Text>
       </View>
@@ -127,19 +123,19 @@ export default function HomeScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color="#FF8A65" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.logoText}>Layman</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={24} color="#333" />
+        <Text style={[styles.logoText, { color: colors.text }]}>Layman</Text>
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+          <Ionicons name="search" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
@@ -166,6 +162,7 @@ export default function HomeScreen({ navigation }: any) {
                 key={index} 
                 style={[
                   styles.dot, 
+                  { backgroundColor: isDark ? '#333' : 'rgba(0,0,0,0.1)' },
                   activeIndex === index ? styles.activeDot : null
                 ]} 
               />
@@ -175,8 +172,8 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* TODAY'S PICKS */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Picks</Text>
-          <TouchableOpacity>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Today's Picks</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Saved')}>
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
@@ -196,13 +193,11 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF0E5',
   },
   header: {
     flexDirection: 'row',
@@ -214,14 +209,12 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#000',
     letterSpacing: -1,
   },
   searchButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.04)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -268,7 +261,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(0,0,0,0.1)',
     marginHorizontal: 5,
   },
   activeDot: {
@@ -286,7 +278,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#000',
   },
   viewAllText: {
     color: '#FF8A65',
@@ -299,7 +290,6 @@ const styles = StyleSheet.create({
   },
   verticalCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 24,
     marginBottom: 12,
     padding: 10,
@@ -318,7 +308,6 @@ const styles = StyleSheet.create({
   verticalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
     lineHeight: 22,
   },
 });

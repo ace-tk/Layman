@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../services/supabase';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -30,12 +31,13 @@ const simplifyHeadline = (text: string) => {
 };
 
 const ImageWithFallback = ({ uri, style }: any) => {
+  const { colors, isDark } = useTheme();
   const [error, setError] = useState(false);
 
   if (!uri || error) {
     return (
-      <View style={[style, { backgroundColor: '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
-        <Ionicons name="image-outline" size={32} color="#E65100" />
+      <View style={[style, { backgroundColor: isDark ? '#2A2A2A' : '#FFE0B2', justifyContent: 'center', alignItems: 'center' }]}>
+        <Ionicons name="image-outline" size={32} color="#FF8A65" />
       </View>
     );
   }
@@ -50,6 +52,7 @@ const ImageWithFallback = ({ uri, style }: any) => {
 };
 
 export default function SavedScreen({ navigation }: any) {
+  const { colors, isDark } = useTheme();
   const [savedArticles, setSavedArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +97,7 @@ export default function SavedScreen({ navigation }: any) {
 
     return (
       <TouchableOpacity 
-        style={styles.verticalCard} 
+        style={[styles.verticalCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]} 
         activeOpacity={0.7}
         onPress={() => navigation.navigate('ArticleDetail', { article: reconstructedArticle })}
       >
@@ -103,7 +106,7 @@ export default function SavedScreen({ navigation }: any) {
           style={styles.verticalImage} 
         />
         <View style={styles.verticalContent}>
-          <Text style={styles.verticalTitle} numberOfLines={2}>
+          <Text style={[styles.verticalTitle, { color: colors.text }]} numberOfLines={2}>
             {simplifyHeadline(item.title)}
           </Text>
         </View>
@@ -113,30 +116,30 @@ export default function SavedScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color="#FF8A65" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Saved</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={24} color="#333" />
+        <Text style={[styles.headerText, { color: colors.text }]}>Saved</Text>
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }]}>
+          <Ionicons name="search" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
       {/* LIST */}
       {savedArticles.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? '#1F1F1F' : '#FFEAD6' }]}>
             <Ionicons name="bookmark-outline" size={60} color="#D47545" />
           </View>
-          <Text style={styles.emptyTitle}>Nothing here yet</Text>
-          <Text style={styles.emptySubtitle}>Articles you save will show up here</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Nothing here yet</Text>
+          <Text style={[styles.emptySubtitle, { color: colors.subtext }]}>Articles you save will show up here</Text>
         </View>
       ) : (
         <FlatList
@@ -154,13 +157,11 @@ export default function SavedScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF0E5',
   },
   header: {
     flexDirection: 'row',
@@ -172,14 +173,12 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#000',
     letterSpacing: -1,
   },
   searchButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.04)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -190,7 +189,6 @@ const styles = StyleSheet.create({
   },
   verticalCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 24,
     marginBottom: 12,
     padding: 10,
@@ -209,7 +207,6 @@ const styles = StyleSheet.create({
   verticalTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
     lineHeight: 22,
   },
   emptyContainer: {
@@ -222,7 +219,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#FFEAD6',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -230,12 +226,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#000',
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 16,
-    color: '#666',
     textAlign: 'center',
     lineHeight: 22,
   }

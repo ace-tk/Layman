@@ -11,10 +11,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
+import { useTheme } from '../context/ThemeContext';
 
 export default function ProfileScreen({ navigation }: any) {
+  const { colors, toggleTheme, isDark } = useTheme();
   const [email, setEmail] = useState<string | null>(null);
-  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
   useEffect(() => {
@@ -56,19 +57,19 @@ export default function ProfileScreen({ navigation }: any) {
       activeOpacity={type === 'arrow' ? 0.6 : 1}
     >
       <View style={styles.itemLeft}>
-        <View style={styles.itemIconBox}>
-          <Ionicons name={icon} size={20} color="#666" />
+        <View style={[styles.itemIconBox, { backgroundColor: isDark ? '#2A2A2A' : '#F9F9F9' }]}>
+          <Ionicons name={icon} size={20} color={isDark ? "#AAA" : "#666"} />
         </View>
-        <Text style={styles.itemTitle}>{title}</Text>
+        <Text style={[styles.itemTitle, { color: colors.text }]}>{title}</Text>
       </View>
       
       {type === 'arrow' ? (
-        <Ionicons name="chevron-forward" size={20} color="#AAA" />
+        <Ionicons name="chevron-forward" size={20} color={isDark ? "#555" : "#AAA"} />
       ) : (
         <Switch 
           value={value} 
           onValueChange={onValueChange}
-          trackColor={{ false: "#DDD", true: "#FF8A65" }}
+          trackColor={{ false: "#333", true: "#FF8A65" }}
           thumbColor="#FFF"
         />
       )}
@@ -76,32 +77,32 @@ export default function ProfileScreen({ navigation }: any) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>Profile</Text>
+        <Text style={[styles.headerText, { color: colors.text }]}>Profile</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
         {/* USER INFO CARD */}
-        <View style={styles.userCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{getUserInitials()}</Text>
+        <View style={[styles.userCard, { backgroundColor: colors.card }]}>
+          <View style={[styles.avatarCircle, { backgroundColor: isDark ? '#333' : '#FFEAD6' }]}>
+            <Text style={[styles.avatarText, { color: isDark ? '#FF8A65' : '#D47545' }]}>{getUserInitials()}</Text>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>Reader</Text>
-            <Text style={styles.userEmail}>{email || 'user@example.com'}</Text>
+            <Text style={[styles.userName, { color: colors.text }]}>Reader</Text>
+            <Text style={[styles.userEmail, { color: colors.subtext }]}>{email || 'user@example.com'}</Text>
           </View>
-          <TouchableOpacity style={styles.editBtn}>
-            <Ionicons name="pencil-sharp" size={16} color="#666" />
+          <TouchableOpacity style={[styles.editBtn, { backgroundColor: isDark ? '#333' : '#F5F5F5' }]}>
+            <Ionicons name="pencil-sharp" size={16} color={isDark ? "#AAA" : "#666"} />
           </TouchableOpacity>
         </View>
 
         {/* SECTION: CONTENT */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>CONTENT</Text>
-          <View style={styles.sectionCard}>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             <ProfileItem icon="bookmark-outline" title="Saved Articles" />
           </View>
         </View>
@@ -109,15 +110,15 @@ export default function ProfileScreen({ navigation }: any) {
         {/* SECTION: PREFERENCES */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>PREFERENCES</Text>
-          <View style={styles.sectionCard}>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             <ProfileItem 
               icon="moon-outline" 
               title="Dark Mode" 
               type="switch" 
-              value={darkMode}
-              onValueChange={setDarkMode}
+              value={isDark}
+              onValueChange={toggleTheme}
             />
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
             <ProfileItem 
               icon="notifications-outline" 
               title="Notifications" 
@@ -131,7 +132,7 @@ export default function ProfileScreen({ navigation }: any) {
         {/* SECTION: SUPPORT */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>SUPPORT</Text>
-          <View style={styles.sectionCard}>
+          <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
             <ProfileItem 
               icon="chatbubble-ellipses-outline" 
               title="Send Feedback" 
@@ -153,7 +154,6 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF0E5',
   },
   header: {
     paddingHorizontal: 20,
@@ -162,7 +162,6 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 32,
     fontWeight: '900',
-    color: '#000',
     letterSpacing: -1,
   },
   scrollContent: {
@@ -170,7 +169,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   userCard: {
-    backgroundColor: '#FFF',
     borderRadius: 24,
     padding: 20,
     flexDirection: 'row',
@@ -186,7 +184,6 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#FFEAD6',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -194,7 +191,6 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D47545',
   },
   userInfo: {
     flex: 1,
@@ -202,18 +198,15 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#000',
   },
   userEmail: {
     fontSize: 14,
-    color: '#666',
     marginTop: 2,
   },
   editBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -229,7 +222,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   sectionCard: {
-    backgroundColor: '#FFF',
     borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
@@ -253,7 +245,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: '#F9F9F9',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -261,11 +252,9 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   divider: {
     height: 1,
-    backgroundColor: '#F5F5F5',
     marginHorizontal: 16,
   },
   signOutBtn: {
