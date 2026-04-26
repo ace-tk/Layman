@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+
 import { 
   View, 
   Text, 
@@ -98,6 +99,52 @@ export default function SavedScreen({ navigation }: any) {
     }
   };
 
+  useEffect(() => {
+    let subscription: any;
+
+    const setupSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      subscription = supabase
+        .channel('saved_articles_realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'saved_articles',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setSavedArticles((prev) => {
+                const alreadyExists = prev.some(a => a.id === payload.new.id);
+                if (alreadyExists) return prev;
+                const updated = [payload.new, ...prev];
+                cacheSavedArticles(updated);
+                return updated;
+              });
+            } else if (payload.eventType === 'DELETE') {
+              setSavedArticles((prev) => {
+                const updated = prev.filter((a) => a.id !== payload.old.id);
+                cacheSavedArticles(updated);
+                return updated;
+              });
+            }
+          }
+        )
+        .subscribe();
+    };
+
+    setupSubscription();
+
+    return () => {
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {

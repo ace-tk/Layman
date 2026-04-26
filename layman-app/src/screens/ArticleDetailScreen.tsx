@@ -218,8 +218,7 @@ export default function ArticleDetailScreen({ route, navigation }: any) {
             }}
             activeOpacity={0.8}
           >
-
-            <MaterialCommunityIcons name="sparkles" size={20} color="#FFF" style={{ marginRight: 10 }} />
+            <MaterialCommunityIcons name="creation" size={20} color="#FFF" style={{ marginRight: 10 }} />
             <Text style={styles.askLaymanText}>Ask Layman</Text>
           </TouchableOpacity>
         </View>

@@ -10,6 +10,8 @@ import MainNavigator from './src/navigation/MainNavigator';
 import ArticleDetailScreen from './src/screens/ArticleDetailScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import { updateStreak } from './src/services/streakService';
+import { setupNotifications } from './src/services/notificationService';
+
 
 
 const Stack = createNativeStackNavigator();
@@ -24,9 +26,11 @@ export default function App() {
     // 1. Check current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      // Initialize streak
+      // Initialize services
       updateStreak();
+      setupNotifications();
       SplashScreen.hideAsync();
+
     });
 
 

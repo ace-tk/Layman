@@ -16,6 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { fetchNews } from '../services/newsService';
 import { useTheme } from '../context/ThemeContext';
 import { triggerLightHaptic } from '../services/haptics';
+import { sendBreakingNewsNotification } from '../services/notificationService';
+
 
 
 const { width } = Dimensions.get('window');
@@ -61,6 +63,8 @@ export default function HomeScreen({ navigation }: any) {
   const [articles, setArticles] = useState<any[]>([]);
   const [featuredArticles, setFeaturedArticles] = useState<any[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [notificationSent, setNotificationSent] = useState(false);
+
 
   useEffect(() => {
     loadNews();
@@ -74,7 +78,19 @@ export default function HomeScreen({ navigation }: any) {
       if (news && news.length > 0) {
         setFeaturedArticles(news.slice(0, 4));
         setArticles(news.slice(4));
+
+        // Mock breaking news notification
+        if (!notificationSent) {
+          setTimeout(() => {
+            sendBreakingNewsNotification(
+              "OpenAI raises $10B",
+              "The AI giant just secured massive funding to accelerate development. Tap to read the summary."
+            );
+            setNotificationSent(true);
+          }, 3000); // Wait 3 seconds after load to feel natural
+        }
       }
+
     } catch (err: any) {
       setErrorStatus(err.message || 'Failed to load news');
     } finally {
