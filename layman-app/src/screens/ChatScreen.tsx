@@ -14,8 +14,12 @@ import {
   ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
+import * as FileSystem from 'expo-file-system';
 import { askLaymanAI } from '../services/aiService';
 import { useTheme } from '../context/ThemeContext';
+import { triggerLightHaptic } from '../services/haptics';
 
 export default function ChatScreen({ route, navigation }: any) {
   const { colors, isDark } = useTheme();
@@ -31,36 +35,91 @@ export default function ChatScreen({ route, navigation }: any) {
   ]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   
   const flatListRef = useRef<FlatList>(null);
 
-  // Dynamic Suggestion Chips based locally on context to be fast
+  // Dynamic Suggestion Chips
   const suggestions = [
     "Explain this simply.",
     "Why is this important?",
     "Who does this affect?"
   ];
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
+  // VOICE FUNCTIONS
+  const startRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') return;
 
-    const userMsg = { id: Date.now().toString(), text, isBot: false };
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      triggerLightHaptic();
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+    
+    setIsRecording(false);
+    setRecording(null);
+    triggerLightHaptic();
+
+    try {
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      if (uri) {
+        // Use 'base64' string directly to avoid TS errors with Enum paths in SDK 53
+        const base64 = await FileSystem.readAsStringAsync(uri, { 
+          encoding: 'base64' 
+        });
+        await handleSendMessage(null, base64);
+      }
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+    }
+  };
+
+  const handleSendMessage = async (text: string | null, audioBase64: string | null = null) => {
+    if (!text?.trim() && !audioBase64) return;
+
+    const userMsg = { 
+      id: Date.now().toString(), 
+      text: audioBase64 ? "🎤 (Voice Message)" : (text || ""), 
+      isBot: false 
+    };
+    
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setIsLoading(true);
     Keyboard.dismiss();
 
     try {
-      // Pass the context, user's input, and previous messages
-      const response = await askLaymanAI(contextBlock, text, messages.filter(m => m.id !== 'start'));
+      const response = await askLaymanAI(contextBlock, text, messages.filter(m => m.id !== 'start'), audioBase64);
       
       const botMsg = { id: (Date.now() + 1).toString(), text: response, isBot: true };
       setMessages(prev => [...prev, botMsg]);
+      
+      // Bot speaks back!
+      Speech.speak(response, {
+        pitch: 1.0,
+        rate: 0.9,
+      });
     } catch (error: any) {
-      console.log()
       const errorMsg = { 
         id: (Date.now() + 1).toString(), 
-        text: "I'm sorry, I encountered an error connecting to my brain. Please check your API key.", 
+        text: "I'm sorry, I encountered an error. Please try again.", 
         isBot: true 
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -110,7 +169,7 @@ export default function ChatScreen({ route, navigation }: any) {
         {isLoading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color="#FF8A65" />
-            <Text style={styles.loadingText}>Layman is thinking...</Text>
+            <Text style={styles.loadingText}>{isRecording ? "Listening..." : "Layman is thinking..."}</Text>
           </View>
         )}
 
@@ -122,7 +181,7 @@ export default function ChatScreen({ route, navigation }: any) {
                 <TouchableOpacity 
                   key={idx} 
                   style={[styles.chip, { backgroundColor: isDark ? '#1F1F1F' : '#FFF', borderColor: isDark ? '#333' : '#FFE0B2' }]}
-                  onPress={() => sendMessage(suggestion)}
+                  onPress={() => handleSendMessage(suggestion)}
                 >
                   <Text style={styles.chipText}>{suggestion}</Text>
                 </TouchableOpacity>
@@ -133,22 +192,31 @@ export default function ChatScreen({ route, navigation }: any) {
 
         {/* INPUT BAR */}
         <View style={[styles.inputContainer, { backgroundColor: isDark ? '#1F1F1F' : '#FFF' }]}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="mic-outline" size={24} color={isDark ? "#AAA" : "#666"} />
+          <TouchableOpacity 
+            style={[styles.iconButton, isRecording && styles.recordingButton]}
+            onPressIn={startRecording}
+            onPressOut={stopRecording}
+          >
+            <Ionicons 
+              name={isRecording ? "mic" : "mic-outline"} 
+              size={24} 
+              color={isRecording ? "#FFF" : (isDark ? "#AAA" : "#666")} 
+            />
           </TouchableOpacity>
           <TextInput
             style={[styles.textInput, { backgroundColor: isDark ? '#2A2A2A' : '#F5F5F5', color: colors.text }]}
-            placeholder="Type your question..."
+            placeholder={isRecording ? "Recording..." : "Type your question..."}
             placeholderTextColor={isDark ? "#666" : "#999"}
             value={inputText}
             onChangeText={setInputText}
-            onSubmitEditing={() => sendMessage(inputText)}
+            onSubmitEditing={() => handleSendMessage(inputText)}
             returnKeyType="send"
+            editable={!isRecording}
           />
           <TouchableOpacity 
-            style={[styles.iconButton, styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-            disabled={!inputText.trim() || isLoading}
-            onPress={() => sendMessage(inputText)}
+            style={[styles.iconButton, styles.sendButton, (!inputText.trim() || isRecording) && styles.sendButtonDisabled]}
+            disabled={!inputText.trim() || isLoading || isRecording}
+            onPress={() => handleSendMessage(inputText)}
           >
             <Ionicons name="send" size={18} color="#FFF" />
           </TouchableOpacity>
@@ -268,6 +336,10 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 8,
+  },
+  recordingButton: {
+    backgroundColor: '#FF4444',
+    borderRadius: 20,
   },
   sendButton: {
     backgroundColor: '#FF8A65',

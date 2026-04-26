@@ -1,4 +1,4 @@
-export const askLaymanAI = async (articleContext, userMessage, chatHistory = []) => {
+export const askLaymanAI = async (articleContext, userMessage, chatHistory = [], audioBase64 = null) => {
   const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
 
   if (!API_KEY || API_KEY === 'YOUR_GEMINI_API_KEY') {
@@ -24,25 +24,37 @@ export const askLaymanAI = async (articleContext, userMessage, chatHistory = [])
     compiledHistory += `\n${msg.isBot ? 'Layman: ' : 'User: '}${msg.text}`;
   });
 
-  const fullPrompt = `${systemInstruction}\n\nPast Chat Context:${compiledHistory}\n\nUser: ${userMessage}\nLayman:`;
+  const parts = [];
+
+  if (audioBase64) {
+    // For voice input, we ask Gemini to transcribe and then follow the system instruction
+    parts.push({ 
+      text: `${systemInstruction}\n\nPast Chat Context:${compiledHistory}\n\nIMPORTANT: The user has sent a voice message. Please transcribe their question exactly and then answer it using the Layman rules above.` 
+    });
+    parts.push({
+      inline_data: {
+        mime_type: "audio/aac", // expo-av records in AAC/m4a
+        data: audioBase64
+      }
+    });
+  } else {
+    // Standard text input
+    const fullPrompt = `${systemInstruction}\n\nPast Chat Context:${compiledHistory}\n\nUser: ${userMessage}\nLayman:`;
+    parts.push({ text: fullPrompt });
+  }
 
   const payload = {
     contents: [
       {
-        parts: [
-          { text: fullPrompt }
-        ]
+        parts: parts
       }
     ]
   };
 
-  // NOTE: gemini-1.5-flash-latest is not available for this key/version. Switching to available gemini-2.0-flash.
-  // use Gemini 2.5 Flash
-  
   const modelName = 'gemini-2.5-flash';
   const API_URL = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${API_KEY}`;
 
-  console.log(`[DEBUG] Calling Gemini API (Model: ${modelName})`);
+  console.log(`[DEBUG] Calling Gemini API (Model: ${modelName}) ${audioBase64 ? 'with VOICE' : 'with TEXT'}`);
 
   try {
     const response = await fetch(API_URL, {
@@ -57,8 +69,7 @@ export const askLaymanAI = async (articleContext, userMessage, chatHistory = [])
     const responseText = await response.text();
 
     console.log(`[DEBUG] Status: ${statusCode}`);
-    console.log(`[DEBUG] Full Response:`, responseText);
-
+    
     if (!response.ok) {
       throw new Error(`API failed with status ${statusCode}: ${responseText}`);
     }
